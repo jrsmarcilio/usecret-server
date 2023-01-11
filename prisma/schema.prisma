@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String
+  username    String    @unique
+  password    String
+  fullname    String?
+  avatar      String?
+  userGroups  UserGroup @relation(fields: [userGroupId], references: [id])
+  userGroupId Int
+  deleted     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  profiles    Profile?  @relation(fields: [profileId], references: [id])
+  profileId   Int?
+}
+
+model Account {
+  id          Int       @id @default(autoincrement())
+  type        String    @default("Credential")
+  name        String
+  username    String
+  password    String
+  URL         String?
+  Notes       String?
+  tags        Tags[]
+  userGroup   UserGroup @relation(fields: [userGroupId], references: [id])
+  userGroupId Int
+  favorite    Boolean   @default(false)
+  private     Boolean   @default(false)
+  deleted     Boolean   @default(false)
+  expiresAt   DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  clientId    String?
+  categoryId  String?
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model UserGroup {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  users       User[]
+  accounts    Account[]
+}
+
+model Tags {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  accountId Int?
+  userId    String?
+  accounts  Account? @relation(fields: [accountId], references: [id])
+}
+
+model Profile {
+  id          Int      @id @default(autoincrement())
+  users       User[]
+  name        String   @unique
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
