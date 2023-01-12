@@ -2,7 +2,7 @@ import { Profile } from '@prisma/client';
 import prisma from '../prisma/prismaClient'
 import { CrudInterface } from '../interface/CrudInterface';
 
-export class ProfileRepository implements CrudInterface<Profile> {
+export class ProfileService implements CrudInterface<Profile> {
   async index(id: number): Promise<Profile | null> {
     return await prisma.profile.findUnique({ where: { id } });
   }

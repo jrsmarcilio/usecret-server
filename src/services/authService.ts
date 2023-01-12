@@ -2,13 +2,13 @@ import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import CODE from 'http-status-enum'
-import { UserRepository } from './UserRepository';
+import { UserService } from './userService';
 import { TLogin } from '../interface/LoginInterface';
 import { User } from '@prisma/client';
 
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET || 'secret';
 
-export class AuthRepository extends UserRepository {
+export class AuthService {
   signAccessToken(user: User) {
     return new Promise((resolve, reject) => {
       const { id, username, profileId, userGroupId } = user;
@@ -23,7 +23,7 @@ export class AuthRepository extends UserRepository {
   verifyAccessToken(token: string) {
     return new Promise((resolve, reject) => {
       jwt.verify(token, accessTokenSecret, (err, payload) => {
-        if (err) return reject(err.name == 'JsonWebTokenError' ? CODE.UNAUTHORIZED : err.message);
+        if (err) return reject(err.name === 'JsonWebTokenError' ? CODE.UNAUTHORIZED : err.message);
         resolve(payload)
       })
     })
@@ -31,7 +31,7 @@ export class AuthRepository extends UserRepository {
 
   public async login(login: TLogin) {
     const { username, password } = login;
-    const user = await super.findByUsername(username);
+    const user = await new UserService().findByUsername(username);
     if (!user) return { error: true, message: 'Email address or password not valid' };
     const checkPassword = bcrypt.compareSync(password, user.password)
     if (!checkPassword) return { error: true, message: 'Email address or password not valid' };
@@ -40,7 +40,7 @@ export class AuthRepository extends UserRepository {
       name: user.fullname,
       avatar: user.avatar,
       profile: user.profiles?.name,
-      userGroup: user.userGroup?.name
+      userGroup: user.userGroups?.name
     }
     return { data, token }
   }

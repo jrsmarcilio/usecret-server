@@ -1,8 +1,8 @@
-import { User, UserGroup } from '@prisma/client';
-import prisma from '../prisma/prismaClient'
+import { UserGroup } from '@prisma/client';
 import { CrudInterface } from '../interface/CrudInterface';
+import prisma from '../prisma/prismaClient';
 
-export class UserGroupRepository implements CrudInterface<UserGroup> {
+export class UserGroupService implements CrudInterface<UserGroup> {
   async index(id: number): Promise<UserGroup | null> {
     return await prisma.userGroup.findUnique({ where: { id } });
   }

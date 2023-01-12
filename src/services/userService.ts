@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import { CrudInterface } from '../interface/CrudInterface';
 import prisma from '../prisma/prismaClient';
 
-export class UserRepository implements CrudInterface<User> {
+export class UserService implements CrudInterface<User> {
   public async index(id: number): Promise<User | null> {
     return await prisma.user.findUnique({ where: { id } });
   }
@@ -39,11 +39,11 @@ export class UserRepository implements CrudInterface<User> {
     return await prisma.user.findMany();;
   }
 
-  public async findByUsername(username: string): Promise<(User & { userGroup: UserGroup; profiles: Profile | null; }) | null> {
+  public async findByUsername(username: string): Promise<(User & { userGroups: UserGroup; profiles: Profile | null; }) | null> {
     return await prisma.user.findUnique({
       where: { username }, include: {
         profiles: true,
-        userGroup: true
+        userGroups: true
       }
     });
   }

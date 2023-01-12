@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { UserRepository } from '../repository/UserRepository';
-import { AuthRepository } from '../repository/AuthRepository';
+import { UserService } from '../services/userService';
+import { AuthService } from '../services/authService';
 import CODE from 'http-status-enum';
 
-export default class UserController extends UserRepository {
+export default class UserController extends UserService {
   async getUserById(request: Request, response: Response): Promise<Response> {
     const { id } = request.params;
     if (!id) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
@@ -20,7 +20,7 @@ export default class UserController extends UserRepository {
     const usernameExists = await super.findByUsername(username);
     if (usernameExists) return response.status(CODE.UNAUTHORIZED).json({ message: 'Username already exists' });
     const user = await super.create(request.body);
-    const token = await new AuthRepository().signAccessToken(user);
+    const token = await new AuthService().signAccessToken(user);
     if (!user) return response.status(CODE.FORBIDDEN).json({ message: 'User not created' });
     return response.status(CODE.CREATED).json({ token, message: 'User created' });
   }
@@ -45,7 +45,9 @@ export default class UserController extends UserRepository {
   }
 
   async listUsers(request: Request, response: Response): Promise<Response> {
+    if (!request.user) return response.status(CODE.UNAUTHORIZED).json({ message: 'Unauthorized' });
     const Users = await super.list();
+
     return response.status(CODE.OK).json({ data: Users });
   }
 
@@ -60,7 +62,7 @@ export default class UserController extends UserRepository {
   async login(request: Request, response: Response): Promise<Response> {
     const { username, password } = request.body;
     if (!username || !password) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
-    const data = await new AuthRepository().login(request.body);
+    const data = await new AuthService().login(request.body);
     if (data.error) return response.status(CODE.UNAUTHORIZED).json({ message: data.message });
     return response.status(CODE.OK).json(data);
   }

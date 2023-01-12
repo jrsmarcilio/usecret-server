@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { UserGroupRepository } from '../repository/UserGroupRepository';
+import { UserGroupService } from '../services/userGroupService';
 import CODE from 'http-status-enum';
 
-export default class UserGroupController extends UserGroupRepository {
+export default class UserGroupController extends UserGroupService {
   async createUserGroup(request: Request, response: Response): Promise<Response> {
     const { name, description } = request.body;
     if (!name || !description) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });

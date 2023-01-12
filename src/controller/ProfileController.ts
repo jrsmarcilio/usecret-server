@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { ProfileRepository } from '../repository/ProfileRepository';
+import { ProfileService } from '../services/profileService';
 import CODE from 'http-status-enum';
 
-export default class ProfileController extends ProfileRepository {
+export default class ProfileController extends ProfileService {
   async createProfile(request: Request, response: Response): Promise<Response> {
     const { name, description } = request.body;
     if (!name || !description) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
