@@ -1,22 +1,33 @@
 import { Request, Response } from 'express';
 import { UserGroupService } from '../services/userGroupService';
 import CODE from 'http-status-enum';
+import { validationResult } from 'express-validator';
 
 export default class UserGroupController extends UserGroupService {
+  async indexUserGroup(request: Request, response: Response): Promise<Response> {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) return response.status(CODE.BAD_REQUEST).json({ errors: errors.array() });
+    const { id } = request.params;
+    const currentUserGroup = await super.index(Number(id), request.user.id);
+    if (!currentUserGroup) return response.status(CODE.NOT_FOUND).json({ message: 'UserGroup not found' });
+    return response.status(CODE.OK).json({ data: currentUserGroup });
+  }
+
   async createUserGroup(request: Request, response: Response): Promise<Response> {
-    const { name, description } = request.body;
-    if (!name || !description) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
-    const nameExists = await super.findByName(name);
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) return response.status(CODE.BAD_REQUEST).json({ errors: errors.array() });
+    const nameExists = await super.findByName(request.body.name, request.user.id);
     if (nameExists) return response.status(CODE.UNAUTHORIZED).json({ error: 'UserGroup name already exists' });
-    const userGroup = await super.create(request.body);
+    const userGroup = await super.create({ ...request.body, rootId: request.user.id });
     if (!userGroup) return response.status(CODE.FORBIDDEN).json({ error: 'UserGroup not created' });
     return response.status(CODE.CREATED).json({ data: userGroup });
   }
 
   async updateUserGroup(request: Request, response: Response): Promise<Response> {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) return response.status(CODE.BAD_REQUEST).json({ errors: errors.array() });
     const { id } = request.params;
-    if (!id) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
-    const currentUserGroup = await super.index(Number(id));
+    const currentUserGroup = await super.index(Number(id), request.user.id);
     if (!currentUserGroup) return response.status(CODE.NOT_FOUND).json({ message: 'UserGroup not found' });
     const userGroup = await super.update(currentUserGroup, request.body);
     if (!userGroup) return response.status(CODE.CONFLICT).json({ error: 'UserGroup not updated' });
@@ -24,24 +35,18 @@ export default class UserGroupController extends UserGroupService {
   }
 
   async deleteUserGroup(request: Request, response: Response): Promise<Response> {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) return response.status(CODE.BAD_REQUEST).json({ errors: errors.array() });
     const { id } = request.params;
-    if (!id) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
     const currentUserGroup = await super.index(Number(id));
     if (!currentUserGroup) return response.status(CODE.NOT_FOUND).json({ message: 'UserGroup not found' });
     await super.delete(currentUserGroup.id);
     return response.status(CODE.OK).json({ message: 'UserGroup deleted' });
   }
 
-  async getUserGroupById(request: Request, response: Response): Promise<Response> {
-    const { id } = request.params;
-    if (!id) return response.status(CODE.BAD_REQUEST).json({ message: 'Missing required fields' });
-    const currentUserGroup = await super.index(Number(id));
-    if (!currentUserGroup) return response.status(CODE.BAD_REQUEST).json({ message: 'UserGroup not found' });
-    return response.status(CODE.OK).json({ data: currentUserGroup });
-  }
-
   async listUserGroups(request: Request, response: Response): Promise<Response> {
-    const userGroups = await super.list();
+    if (!request.user.email) return response.status(CODE.UNAUTHORIZED).json({ error: 'Unauthorized' });
+    const userGroups = await super.list(request.user.id);
     return response.status(CODE.OK).json(userGroups);
   }
 }
