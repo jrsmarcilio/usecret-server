@@ -10,83 +10,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Root {
+  id       Int     @id @default(autoincrement())
+  avatar   String?
+  email    String  @unique
+  fullname String? @default("Root")
+  password String
+
+  accounts   Account[]
+  profiles   Profile[]
+  tags       Tags[]
+  userGroups UserGroup[]
+  users      User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model User {
-  id          Int       @id @default(autoincrement())
-  email       String
-  username    String    @unique
-  password    String
-  fullname    String?
-  avatar      String?
+  id       Int     @id @default(autoincrement())
+  avatar   String?
+  deleted  Boolean @default(false)
+  email    String
+  fullname String?
+  password String
+  username String  @unique
+
+  accounts    Account[]
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  root        Root      @relation(fields: [rootId], references: [id])
   userGroups  UserGroup @relation(fields: [userGroupId], references: [id])
+  profileId   Int
+  rootId      Int
   userGroupId Int
-  deleted     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  profiles    Profile?  @relation(fields: [profileId], references: [id])
-  profileId   Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id          Int       @id @default(autoincrement())
-  type        String    @default("Credential")
-  name        String
-  username    String
-  password    String
-  URL         String?
-  Notes       String?
-  tags        Tags[]
-  userGroup   UserGroup @relation(fields: [userGroupId], references: [id])
-  userGroupId Int
-  favorite    Boolean   @default(false)
-  private     Boolean   @default(false)
-  deleted     Boolean   @default(false)
-  expiresAt   DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  clientId    String?
-  categoryId  String?
-}
+  id       Int     @id @default(autoincrement())
+  deleted  Boolean @default(false)
+  favorite Boolean @default(false)
+  name     String? @default("New Account")
+  notes    String?
+  password String
+  private  Boolean @default(true)
+  type     String  @default("Credential")
+  url      String?
+  username String
 
-model Category {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+  user      User?       @relation(fields: [userId], references: [id])
+  root      Root?       @relation(fields: [rootId], references: [id])
+  userGroup UserGroup[]
+  userId    Int?
+  rootId    Int?
 
-model Client {
-  id        Int      @id @default(autoincrement())
-  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model UserGroup {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
+  id          Int     @id @default(autoincrement())
   description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  users       User[]
-  accounts    Account[]
-}
+  name        String  @unique
 
-model Tags {
-  id        Int      @id @default(autoincrement())
-  name      String
+  accounts Account[]
+  User     User[]
+  root     Root      @relation(fields: [rootId], references: [id])
+  rootId   Int
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  accountId Int?
-  userId    String?
-  accounts  Account? @relation(fields: [accountId], references: [id])
 }
 
 model Profile {
-  id          Int      @id @default(autoincrement())
-  users       User[]
-  name        String   @unique
+  id          Int    @id @default(autoincrement())
+  name        String @unique
   description String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  root   Root   @relation(fields: [rootId], references: [id])
+  rootId Int
+  User   User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tags {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  root   Root @relation(fields: [rootId], references: [id])
+  rootId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
