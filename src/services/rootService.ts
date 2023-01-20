@@ -40,5 +40,13 @@ export class RootService implements CrudInterface<Root> {
     const usersWithoutPassword = users.map(async (user) => excludeField<User, keyof User>(user, ['password']));
     return users;
   }
+
+  public async findByEmail(email: string): Promise<Root | null> {
+    return await prisma.root.findUnique({ where: { email } });
+  }
+
+  public omitPassword(root: Root): any {
+    return excludeField<Root, keyof Root>(root, ['password']);
+  }
 }
 

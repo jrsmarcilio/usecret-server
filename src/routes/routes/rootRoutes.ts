@@ -2,15 +2,15 @@ import { Router } from 'express';
 
 import { RootController } from '../../controller/rootController';
 import { AuthMiddleware } from '../../middlewares/authMiddleware';
-import { userValidation } from '../../validations/userValidation';
+import { rootValidation } from '../../validations/rootValidation';
 
 const rootController = new RootController();
 const rootRoutes = Router();
 
-rootRoutes.post('/', userValidation.create, rootController.createRoot);
+rootRoutes.post('/', rootValidation.create, rootController.createRoot);
 rootRoutes.use(AuthMiddleware);
-rootRoutes.get('/:id', userValidation.index, rootController.indexRoot);
-rootRoutes.put('/:id', userValidation.update, rootController.updateRoot);
-rootRoutes.delete('/:id', userValidation.delete, rootController.deleteRoot);
+rootRoutes.get('/', rootController.indexRoot);
+rootRoutes.put('/', rootValidation.update, rootController.updateRoot);
+rootRoutes.delete('/', rootController.deleteRoot);
 
 export { rootRoutes }
